@@ -3,7 +3,6 @@
 -- curl -d "{\"method\":\"addition\", \"params\":[1,3]}" http://localhost/lua-jsonrpc-server
 
 local cjson_safe = require "cjson.safe"
-local inspect = require 'inspect' -- for debugging purposes
 
 local _M = {
 	_VERSION = '0.0.1'

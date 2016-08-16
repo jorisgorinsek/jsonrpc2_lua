@@ -3,6 +3,7 @@
 -- curl -d "{\"method\":\"addition\", \"params\":[1,3]}" http://localhost/lua-jsonrpc-server
 
 local cjson_safe = require "cjson.safe"
+local inspect = require 'inspect' -- for debugging purposes
 
 local _M = {
 	_VERSION = '0.0.1'
@@ -45,11 +46,7 @@ end
 
 function _M.json_format(self)
   local err
-	--if self.payload == nil then
-	--  print("Calling socket:revc()")
-		self.payload = socket:recv()
-	--end
-  --print("Received: " .. self.payload)
+	self.payload = socket:recv()
 
 	if type(self.payload) ==  "string" then
 		self.payload,err = cjson_safe.decode(self.payload)
@@ -133,7 +130,6 @@ function _M.execute_method(self, method, params)
 	local classname = self.classes[method]["classname"]
 	local method = self.classes[method]["method"]
 	local success, result = pcall(classname[method], unpack(params))
-
 	return self:get_response(result)
 end
 
@@ -178,7 +174,6 @@ function _M.rpc_error(self, code, message)
     end
   end
    
-  print([[rpc_error for: ]].. code .. ", message: ".. message .. ", id: " .. id)
 	local data, err = cjson_safe.encode({
 		jsonrpc = "2.0",
 		id = id,

@@ -28,6 +28,7 @@ socket = ctx:socket(zmq.REP)
 socket:bind 'tcp://*:4568'
 
 while(true) do
-  local result = server:execute(socket)
+  local data = socket:recv()
+  local result = server:execute(data)
   socket:send(result)
 end

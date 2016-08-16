@@ -44,9 +44,9 @@ function _M.bind(self, procedure, classname, method)
 
 end
 
-function _M.json_format(self)
+function _M.json_format(self, data)
   local err
-	self.payload = socket:recv()
+	self.payload = data
 
 	if type(self.payload) ==  "string" then
 		self.payload,err = cjson_safe.decode(self.payload)
@@ -149,10 +149,10 @@ function _M.get_response(self, data)
 	return data
 end
 
-function _M.execute(self, socket)
+function _M.execute(self, data)
 	local result
 
-	result = self:json_format(socket)
+	result = self:json_format(data)
 	if result ~= true then
 		return self:rpc_error(-32700, "Parse error")
 	end

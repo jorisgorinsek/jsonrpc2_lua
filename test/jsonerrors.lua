@@ -20,10 +20,8 @@ server:register("update", update)
 
 -- helper functions to decode json strings and workaround sequence problems.
 function test_response(response, expected)
-  local reslen, explen = string.len(response), string.len(expected)
-  
   -- catch empty responses or expected results
-  if ((reslen == 0) or (explen == 0))  then 
+  if ((response == nil) or (expected == nil))  then 
      assert.are.equals(response, expected)
   else
      assert.are.equals( inspect(cjson.decode(response)), inspect(cjson.decode(expected)))
@@ -55,16 +53,16 @@ describe("Test_JSON-RPC2_Compliance", function()
     end)
     it("Notifications_test_1", function()
         local response = server:execute([[{"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]}]])
-        test_response([[]], response)
+        test_response(nil, response)
     end)
     
     it("Notifications_test_2", function()
-        local response = server:execute([[{"jsonrpc": "2.0", "method": "foobar"}]])
-        test_response([[]], response)
+        local response = server:execute([[{"jsonrpc": "2.0", "method": "update", "params": ["baz"]}]])
+        test_response(nil, response)
     end)
     
     it("RPC_on_non_existent_method_test", function()
-        local response = server:execute([[{"jsonrpc": "2.0", "method": "foobar", "id": "1"}]])
+        local response = server:execute([[{"jsonrpc": "2.0", "method": "foobar", "params": ["baz"], "id": "1"}]])
         test_response([[{"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": "1"}]], response)
     end)
     it("RPC_with_invalid_json", function()

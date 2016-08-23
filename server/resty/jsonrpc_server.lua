@@ -1,7 +1,3 @@
--- Copyright (c) 2015, rryqszq4
--- All rights reserved.
--- curl -d "{\"method\":\"addition\", \"params\":[1,3]}" http://localhost/lua-jsonrpc-server
-
 local cjson_safe = require "cjson.safe"
 
 local _M = {
@@ -133,19 +129,24 @@ function _M.execute_method(self, method, params)
 end
 
 function _M.get_response(self, data)
-	local data, err = cjson_safe.encode({
-		jsonrpc = "2.0",
-		id = self.payload.id,
-		result = data
-	})
-	if data == nil then
-	  cjson_safe.encode({
-      jsonrpc = "2.0",
-      id = self.payload.id,
-      error = {code = -32603, message = "Internal error"}
-    })
-	end
-	return data
+  -- for notifications, don't send a response
+  if (self.payload.id == nil) then
+      return nil
+  else
+  	local data, err = cjson_safe.encode({
+  		jsonrpc = "2.0",
+  		id = self.payload.id,
+  		result = data
+  	})
+  	if data == nil then
+  	  cjson_safe.encode({
+        jsonrpc = "2.0",
+        id = self.payload.id,
+        error = {code = -32603, message = "Internal error"}
+      })
+  	end
+	  return data
+  end
 end
 
 function _M.execute(self, data)

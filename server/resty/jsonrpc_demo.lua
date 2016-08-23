@@ -7,8 +7,7 @@ function _M.new (self)
 end
 
 function _M.add1(a, b)
-  print("calling add1 in resty.jsonrpc_demo")
-	return a+b+1
+	return a+b
 end
 
 return _M

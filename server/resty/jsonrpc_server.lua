@@ -1,3 +1,5 @@
+-- Copyright (c) 2015, rryqszq4
+-- All rights reserved.
 local cjson_safe = require "cjson.safe"
 
 local _M = {
@@ -14,17 +16,17 @@ function _M.new(self)
 	payload = nil
 	callbacks = {}
 	classes = {}
-	
+
 	return 
-	setmetatable({
-		payload = payload,
-		callbacks = callbacks,
-		classes = classes
-	}, mt)
+		setmetatable({
+			payload = payload,
+			callbacks = callbacks,
+			classes = classes
+		}, mt)
 end
 
 function _M.register(self, procedure, closure)
-	
+
 	self.callbacks[procedure] = closure 
 
 end
@@ -32,21 +34,21 @@ end
 function _M.bind(self, procedure, classname, method)
 
 	self.classes[procedure] = 
-	{
-		classname = classname,
-		method = method
-	}
+		{
+			classname = classname,
+			method = method
+		}
 
 end
 
 function _M.json_format(self, data)
-  local err
+	local err
 	self.payload = data
 
 	if type(self.payload) ==  "string" then
 		self.payload,err = cjson_safe.decode(self.payload)
 		if err then 
-		  return false 
+			return false 
 		end
 	end
 
@@ -72,13 +74,13 @@ function _M.rpc_format(self)
 		}
 	end
 
-  if type(self.payload["method"]) ~= "string" then
-    return {
-      -32600,
-      "Invalid Request"
-    }
-  end
-  
+	if type(self.payload["method"]) ~= "string" then
+		return {
+			-32600,
+			"Invalid Request"
+		}
+	end
+
 	if self.payload["method"] == nil then
 		return {
 			-32601,
@@ -103,7 +105,7 @@ function _M.execute_procedure(self, payload_method, payload_params)
 		return self:execute_callback(payload_method, payload_params)	
 
 	elseif type(self.classes[payload_method]) ~= "nil" then
-		
+
 		return self:execute_method(payload_method, payload_params)
 
 	else
@@ -111,7 +113,7 @@ function _M.execute_procedure(self, payload_method, payload_params)
 		return self:rpc_error(-32601, "Method not found")
 
 	end
-	
+
 end
 
 function _M.execute_callback(self, method, params)
@@ -121,32 +123,33 @@ function _M.execute_callback(self, method, params)
 end
 
 function _M.execute_method(self, method, params)
-	
+
 	local classname = self.classes[method]["classname"]
 	local method = self.classes[method]["method"]
 	local success, result = pcall(classname[method], unpack(params))
+
 	return self:get_response(result)
 end
 
 function _M.get_response(self, data)
-  -- for notifications, don't send a response
-  if (self.payload.id == nil) then
-      return nil
-  else
-  	local data, err = cjson_safe.encode({
-  		jsonrpc = "2.0",
-  		id = self.payload.id,
-  		result = data
-  	})
-  	if data == nil then
-  	  cjson_safe.encode({
-        jsonrpc = "2.0",
-        id = self.payload.id,
-        error = {code = -32603, message = "Internal error"}
-      })
-  	end
-	  return data
-  end
+	-- for notifications, don't send a response
+	if (self.payload.id == nil) then
+		return nil
+	else
+		local data, err = cjson_safe.encode({
+			jsonrpc = "2.0",
+			id = self.payload.id,
+			result = data
+		})
+		if data == nil then
+			cjson_safe.encode({
+				jsonrpc = "2.0",
+				id = self.payload.id,
+				error = {code = -32603, message = "Internal error"}
+			})
+		end
+		return data
+	end
 end
 
 function _M.execute(self, data)
@@ -167,13 +170,13 @@ function _M.execute(self, data)
 end
 
 function _M.rpc_error(self, code, message)
-  local id = "null"
-  if self.payload ~= nil then
-    if self.payload.id ~= nil then
-      id = self.payload.id
-    end
-  end
-   
+	local id = "null"
+	if self.payload ~= nil then
+		if self.payload.id ~= nil then
+			id = self.payload.id
+		end
+	end
+
 	local data, err = cjson_safe.encode({
 		jsonrpc = "2.0",
 		id = id,
@@ -182,16 +185,16 @@ function _M.rpc_error(self, code, message)
 			message = message
 		}
 	})
-  if data == nil then
-    cjson_safe.encode({
-      jsonrpc = "2.0",
-      id = id,
-      error = {
-        code = -32603, 
-        message = "Internal error"
-      }
-    })
-  end
+	if data == nil then
+		cjson_safe.encode({
+			jsonrpc = "2.0",
+			id = id,
+			error = {
+				code = -32603, 
+				message = "Internal error"
+			}
+		})
+	end
 	return data
 end
 
